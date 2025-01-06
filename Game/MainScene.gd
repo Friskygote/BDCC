@@ -24,6 +24,7 @@ var encounterSettings:EncounterSettings
 var currentlyTestingScene = false
 var allowExecuteOnce:bool = false
 var isDebuggingIS:bool = false
+var isTimeRunning := true
 
 var IS:InteractionSystem = InteractionSystem.new()
 var RS:RelationshipSystem = RelationshipSystem.new()
@@ -587,7 +588,23 @@ func stopProcessingUnusedCharacters():
 		elif(character != null && !characterIsVisible(charID)):
 			character.updateNonBattleEffects()
 
+# Function stops all time processing actions - characters won't update, interaction system won't be working and player's time is replaced with ??:??
+# Only for use in certain dream like floors/scenarios where the author doesn't want random events or have any pawn simulation
+func stopProcessingTime():
+	isTimeRunning = false
+	GM.ui.onTimePassed(0)  # Update time counter
+
+func startProcessingTime():
+	isTimeRunning = true
+	GM.ui.onTimePassed(0)
+
+func isTimeProcessing() -> bool:
+	return isTimeRunning
+
 func processTime(_seconds):
+	# Do not process time when switched off
+	if !isTimeRunning:
+		return
 	_seconds = int(round(_seconds))
 	
 	timeOfDay += _seconds
@@ -685,6 +702,8 @@ func npcSlaveryOnNewDay():
 			npcSlave.onNewDay()
 
 func getVisibleTime():
+	if !isTimeRunning:
+		return "??:??"
 	var text = ""
 	if(isVeryLate()):
 		text = "Night time"
